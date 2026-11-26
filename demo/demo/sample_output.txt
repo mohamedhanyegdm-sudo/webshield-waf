@@ -1,0 +1,39 @@
+WAF in front of demo app on http://127.0.0.1:PORT (15 rules)
+
+request                              status  outcome
+------------------------------------------------------------------------------
+normal page                          200     reached app
+normal search                        200     reached app
+normal comment (JSON)                200     reached app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "9f88a6406efb", "client": "127.0.0.1", "method": "GET", "path": "/search", "action": "block", "status": 403, "rule_id": "SQLI-002", "category": "sql_injection", "location": "query"}
+SQLi: tautology                      403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "fe37e5218e44", "client": "127.0.0.1", "method": "GET", "path": "/search", "action": "block", "status": 403, "rule_id": "SQLI-001", "category": "sql_injection", "location": "query"}
+SQLi: UNION SELECT                   403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "449befe7fb99", "client": "127.0.0.1", "method": "GET", "path": "/search", "action": "block", "status": 403, "rule_id": "SQLI-001", "category": "sql_injection", "location": "query"}
+SQLi: comment-obfuscated             403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "1193d8abc182", "client": "127.0.0.1", "method": "GET", "path": "/search", "action": "block", "status": 403, "rule_id": "XSS-001", "category": "xss", "location": "query"}
+XSS: script tag                      403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "f4260f5a65bc", "client": "127.0.0.1", "method": "GET", "path": "/search", "action": "block", "status": 403, "rule_id": "XSS-001", "category": "xss", "location": "query"}
+XSS: double-encoded                  403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "fbec99b928cb", "client": "127.0.0.1", "method": "GET", "path": "/search", "action": "block", "status": 403, "rule_id": "XSS-002", "category": "xss", "location": "query"}
+XSS: event handler                   403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "6ecc6b2e99ec", "client": "127.0.0.1", "method": "GET", "path": "/files", "action": "block", "status": 403, "rule_id": "TRAV-001", "category": "path_traversal", "location": "query"}
+Path traversal                       403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "8ee598f20d67", "client": "127.0.0.1", "method": "GET", "path": "/files", "action": "block", "status": 403, "rule_id": "CMDI-001", "category": "command_injection", "location": "query"}
+Command injection                    403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "ff091fc3be92", "client": "127.0.0.1", "method": "POST", "path": "/comment", "action": "block", "status": 403, "rule_id": "XSS-001", "category": "xss", "location": "body"}
+XSS in JSON body                     403     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "d800a3016c7a", "client": "127.0.0.1", "method": "TRACE", "path": "/", "action": "block", "status": 405, "rule_id": "LIMIT-METHOD", "category": "limits", "location": ""}
+Disallowed method (TRACE)            405     blocked before app
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "f6f2b60d54a7", "client": "127.0.0.1", "method": "POST", "path": "/comment", "action": "block", "status": 413, "rule_id": "LIMIT-BODY", "category": "limits", "location": ""}
+Oversized body (2 KB, limit 1 KB)    413     blocked before app
+
+Sample blocked response body:
+  log: {"ts": "2026-11-26T09:50:00+0200", "request_id": "84dce034dfe8", "client": "127.0.0.1", "method": "GET", "path": "/search", "action": "block", "status": 403, "rule_id": "XSS-001", "category": "xss", "location": "query"}
+  {"error": "request blocked by web application firewall", "status": 403, "request_id": "84dce034dfe8"}
+
+Rate limit demo (limit: 5 requests per 60 s), sending 8 requests
+  log: {"ts": "2026-11-26T09:50:01+0200", "request_id": "fc5de85fd9dc", "client": "127.0.0.1", "method": "GET", "path": "/", "action": "block", "status": 429, "rule_id": "LIMIT-RATE", "category": "limits", "location": ""}
+  log: {"ts": "2026-11-26T09:50:01+0200", "request_id": "2e256abe4cce", "client": "127.0.0.1", "method": "GET", "path": "/", "action": "block", "status": 429, "rule_id": "LIMIT-RATE", "category": "limits", "location": ""}
+  log: {"ts": "2026-11-26T09:50:01+0200", "request_id": "ab3ea3a5e1a0", "client": "127.0.0.1", "method": "GET", "path": "/", "action": "block", "status": 429, "rule_id": "LIMIT-RATE", "category": "limits", "location": ""}
+  statuses: [200, 200, 200, 200, 200, 429, 429, 429]
