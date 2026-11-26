@@ -299,8 +299,9 @@ class ProxyIntegration(unittest.TestCase):
 
     def test_rejects_chunked_requests(self):
         conn = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
-        conn.request("POST", "/a", body=iter([b"abc"]), headers={"Transfer-Encoding": "chunked"},
-                     encode_chunked=True)
+        conn.putrequest("POST", "/a")  # headers only: the proxy answers before any body is sent
+        conn.putheader("Transfer-Encoding", "chunked")
+        conn.endheaders()
         self.assertEqual(conn.getresponse().status, 411)
         conn.close()
 
