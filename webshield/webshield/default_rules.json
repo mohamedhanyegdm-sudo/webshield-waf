@@ -1,0 +1,117 @@
+{
+  "settings": {
+    "allowed_methods": ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    "max_body_bytes": 1048576,
+    "max_url_length": 2048,
+    "rate_limit_requests": 120,
+    "rate_limit_window_seconds": 60,
+    "mode": "block"
+  },
+  "rules": [
+    {
+      "id": "SQLI-001",
+      "category": "sql_injection",
+      "message": "UNION SELECT pattern",
+      "pattern": "\\bunion\\b\\s+(?:all\\s+|distinct\\s+)?select\\b",
+      "targets": ["query", "body", "header"]
+    },
+    {
+      "id": "SQLI-002",
+      "category": "sql_injection",
+      "message": "Boolean tautology (for example ' OR 1=1)",
+      "pattern": "(?:['\"]\\s*|\\b)(?:or|and)\\s+['\"]?(\\w+)['\"]?\\s*(?:=|like)\\s*['\"]?\\1\\b",
+      "targets": ["query", "body"]
+    },
+    {
+      "id": "SQLI-003",
+      "category": "sql_injection",
+      "message": "Stacked statement with a destructive keyword",
+      "pattern": ";\\s*(?:drop|delete|insert|update|alter|create|truncate|exec)\\b",
+      "targets": ["query", "body"]
+    },
+    {
+      "id": "SQLI-004",
+      "category": "sql_injection",
+      "message": "SQL function or schema used for blind or data extraction",
+      "pattern": "\\b(?:sleep\\s*\\(|benchmark\\s*\\(|pg_sleep\\s*\\(|waitfor\\s+delay|load_file\\s*\\(|information_schema|extractvalue\\s*\\(|updatexml\\s*\\()",
+      "targets": ["query", "body"]
+    },
+    {
+      "id": "SQLI-005",
+      "category": "sql_injection",
+      "message": "Quote followed by a SQL comment",
+      "pattern": "['\"]\\s*(?:--|#|/\\*)",
+      "targets": ["query", "body"]
+    },
+    {
+      "id": "XSS-001",
+      "category": "xss",
+      "message": "Script tag",
+      "pattern": "<\\s*/?\\s*script\\b",
+      "targets": ["path", "query", "body", "header"]
+    },
+    {
+      "id": "XSS-002",
+      "category": "xss",
+      "message": "Inline event handler attribute",
+      "pattern": "[\\s\"'/<]on[a-z]{3,20}\\s*=",
+      "targets": ["path", "query", "body"]
+    },
+    {
+      "id": "XSS-003",
+      "category": "xss",
+      "message": "javascript: or data:text/html URL",
+      "pattern": "(?:javascript|vbscript)\\s*:|data\\s*:\\s*text/html",
+      "targets": ["path", "query", "body"]
+    },
+    {
+      "id": "XSS-004",
+      "category": "xss",
+      "message": "Embedding tag (iframe, object, embed, svg)",
+      "pattern": "<\\s*(?:iframe|object|embed|svg)\\b",
+      "targets": ["path", "query", "body"]
+    },
+    {
+      "id": "TRAV-001",
+      "category": "path_traversal",
+      "message": "Directory traversal sequence",
+      "pattern": "(?:^|[\\\\/])\\.\\.(?:[\\\\/]|$)",
+      "targets": ["path", "query", "body"]
+    },
+    {
+      "id": "TRAV-002",
+      "category": "path_traversal",
+      "message": "Access to a sensitive system file",
+      "pattern": "/etc/(?:passwd|shadow|hosts)|boot\\.ini|win\\.ini|/proc/self/",
+      "targets": ["path", "query", "body"]
+    },
+    {
+      "id": "TRAV-003",
+      "category": "path_traversal",
+      "message": "Null byte",
+      "pattern": "\\x00",
+      "targets": ["path", "query", "body", "header"]
+    },
+    {
+      "id": "CMDI-001",
+      "category": "command_injection",
+      "message": "Shell operator followed by a common command",
+      "pattern": "(?:;|&&|\\|\\|?|`)\\s*(?:cat|ls|id|whoami|uname|wget|curl|nc|netcat|bash|sh|powershell|cmd(?:\\.exe)?|ping|nslookup)\\b(?:\\s|$|`)",
+      "targets": ["query", "body"]
+    },
+    {
+      "id": "CMDI-002",
+      "category": "command_injection",
+      "message": "Command substitution",
+      "pattern": "\\$\\([^)]*\\)|`[^`\\s][^`]*`",
+      "targets": ["query", "body"]
+    },
+    {
+      "id": "CMDI-003",
+      "category": "command_injection",
+      "message": "Shellshock style function definition",
+      "pattern": "\\(\\)\\s*\\{\\s*[:;]",
+      "targets": ["header", "query", "body"]
+    }
+  ]
+}
